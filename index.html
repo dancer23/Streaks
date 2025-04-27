@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Streak Tracker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #e5b3ff;
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 1000px;
+      padding: 20px;
+      border: 4px solid #e5b3ff;
+      border-radius: 40px;
+      background-color: #1e1e1e;
+      box-shadow: 0 0 20px rgba(229, 179, 255, 0.3);
+    }
+    
+    .header {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 20px;
+    }
+    
+    .streak-title {
+      font-size: 32px;
+      margin: 0 0 15px 0;
+      text-shadow: 0 0 10px rgba(229, 179, 255, 0.5);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    #streak-count {
+      background-color: #9c27b0;
+      color: white;
+      border-radius: 12px;
+      padding: 5px 15px;
+      margin-left: 10px;
+      font-size: 28px;
+    }
+    
+    .countdown-box {
+      border: 4px solid #e5b3ff;
+      border-radius: 20px;
+      padding: 15px;
+      text-align: center;
+      background-color: rgba(156, 39, 176, 0.15);
+      width: 100%;
+    }
+    
+    .countdown-title {
+      font-size: 18px;
+      margin: 0 0 10px 0;
+      word-break: break-word;
+    }
+    
+    .countdown-timer {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+    }
+    
+    .time-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .time-value {
+      background-color: rgba(156, 39, 176, 0.3);
+      padding: 5px 5px;
+      border-radius: 8px;
+      min-width: 32px;
+      text-align: center;
+    }
+    
+    .time-label {
+      font-size: 10px;
+      margin-top: 4px;
+    }
+    
+    .cards-container {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .card {
+      border: 4px solid #e5b3ff;
+      border-radius: 20px;
+      min-height: 100px;
+      overflow: hidden;
+      position: relative;
+      background-color: rgba(156, 39, 176, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover, .card:focus-within {
+      box-shadow: 0 0 15px rgba(229, 179, 255, 0.5);
+      transform: translateY(-3px);
+    }
+    
+    .card-number {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: #9c27b0;
+      color: white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      z-index: 1;
+    }
+    
+    .card textarea {
+      width: 100%;
+      height: 100%;
+      min-height: 100px;
+      padding: 15px;
+      padding-top: 40px;
+      background-color: transparent;
+      border: none;
+      outline: none;
+      color: #e5b3ff;
+      font-size: 16px;
+      resize: none;
+    }
+    
+    .hint-box {
+      border: 4px solid #e5b3ff;
+      border-radius: 20px;
+      padding: 15px;
+      margin-bottom: 20px;
+      max-width: 250px;
+      text-align: center;
+      background-color: rgba(156, 39, 176, 0.15);
+    }
+    
+    .hint-text {
+      font-size: 18px;
+      margin: 0;
+    }
+    
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .button {
+      background-color: transparent;
+      border: 4px solid #e5b3ff;
+      border-radius: 20px;
+      color: #e5b3ff;
+      font-size: 20px;
+      padding: 10px 30px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 10px;
+    }
+    
+    .button:hover, .button:focus {
+      background-color: rgba(229, 179, 255, 0.2);
+      box-shadow: 0 0 10px rgba(229, 179, 255, 0.5);
+    }
+    
+    /* Modal for date input */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 10;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .modal-content {
+      background-color: #1e1e1e;
+      border: 4px solid #e5b3ff;
+      border-radius: 20px;
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+    }
+    
+    .modal-content h2 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+    
+    .modal-content input {
+      background-color: #121212;
+      border: 2px solid #e5b3ff;
+      border-radius: 10px;
+      color: #e5b3ff;
+      padding: 10px;
+      font-size: 18px;
+      width: 100%;
+      margin: 15px 0;
+    }
+    
+    /* Confetti animation */
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
+    
+    /* Media Queries */
+    @media (min-width: 600px) {
+      body {
+        padding: 15px;
+      }
+      
+      .container {
+        padding: 25px;
+      }
+      
+      .header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .streak-title {
+        margin: 0;
+      }
+      
+      .countdown-box {
+        width: auto;
+        min-width: 250px;
+      }
+      
+      .cards-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .button {
+        font-size: 22px;
+        padding: 10px 40px;
+      }
+    }
+    
+    @media (min-width: 900px) {
+      body {
+        padding: 20px;
+      }
+      
+      .container {
+        padding: 30px;
+      }
+      
+      .streak-title {
+        font-size: 42px;
+      }
+      
+      .countdown-title {
+        font-size: 22px;
+      }
+      
+      .countdown-timer {
+        font-size: 28px;
+        gap: 10px;
+      }
+      
+      .time-value {
+        min-width: 40px;
+      }
+      
+      .time-label {
+        font-size: 12px;
+      }
+      
+      .cards-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti-canvas"></canvas>
+  
+  <div class="container">
+    <div class="header">
+      <h1 class="streak-title">Streak Count: <span id="streak-count">0</span></h1>
+      <div class="countdown-box">
+        <h2 class="countdown-title">count down for July 1st 2025</h2>
+        <div class="countdown-timer">
+          <div class="time-unit">
+            <span id="days" class="time-value">00</span>
+            <span class="time-label">Days</span>
+          </div>
+          <div class="time-unit">
+            <span id="hours" class="time-value">00</span>
+            <span class="time-label">Hours</span>
+          </div>
+          <div class="time-unit">
+            <span id="minutes" class="time-value">00</span>
+            <span class="time-label">Min</span>
+          </div>
+          <div class="time-unit">
+            <span id="seconds" class="time-value">00</span>
+            <span class="time-label">Sec</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    
+    <div id="cards-container" class="cards-container">
+      <!-- Cards will be generated by JavaScript -->
+    </div>
+    
+    <div class="button-container">
+      <button id="add-streak" class="button">add streak</button>
+      <button id="reset-button" class="button">reset</button>
+    </div>
+  </div>
+  
+  <!-- Date modal -->
+  <div id="date-modal" class="modal">
+    <div class="modal-content">
+      <h2>Set a new target date</h2>
+      <p>Enter your next goal date:</p>
+      <input type="date" id="new-target-date">
+      <button id="save-date" class="button">Save</button>
+    </div>
+  </div>
+
+  <script>
+    // Initialize variables
+    let streakCount = 0;
+    let targetDate = new Date('July 1, 2025');
+    let countdownInterval;
+    let cardEntries = [];
+    
+    // Load data from localStorage
+    function loadData() {
+      const savedData = JSON.parse(localStorage.getItem('streakTrackerData')) || {};
+      
+      if (savedData.streakCount) streakCount = savedData.streakCount;
+      if (savedData.targetDate) targetDate = new Date(savedData.targetDate);
+      if (savedData.cardEntries) cardEntries = savedData.cardEntries;
+      
+      // Update display
+      document.getElementById('streak-count').textContent = streakCount;
+      document.querySelector('.countdown-title').textContent = `count down for ${targetDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+      
+      // Start countdown
+      startCountdown();
+    }
+    
+    // Save data to localStorage
+    function saveData() {
+      const dataToSave = {
+        streakCount: streakCount,
+        targetDate: targetDate.toISOString(),
+        cardEntries: cardEntries
+      };
+      
+      localStorage.setItem('streakTrackerData', JSON.stringify(dataToSave));
+    }
+    
+    // Start countdown timer
+    function startCountdown() {
+      // Clear existing interval if any
+      if (countdownInterval) clearInterval(countdownInterval);
+      
+      function updateCountdown() {
+        const now = new Date();
+        const timeDiff = targetDate - now;
+        
+        if (timeDiff <= 0) {
+          // Target date reached
+          clearInterval(countdownInterval);
+          document.getElementById('days').textContent = '00';
+          document.getElementById('hours').textContent = '00';
+          document.getElementById('minutes').textContent = '00';
+          document.getElementById('seconds').textContent = '00';
+          
+          // Show modal to set new date
+          document.getElementById('date-modal').style.display = 'flex';
+          return;
+        }
+        
+        // Calculate time components
+        const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+        
+        // Update display
+        document.getElementById('days').textContent = days.toString().padStart(2, '0');
+        document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+        document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+        document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+      }
+      
+      // Update immediately and then every second
+      updateCountdown();
+      countdownInterval = setInterval(updateCountdown, 1000);
+    }
+    
+    // Generate the cards
+    function generateCards() {
+      const cardsContainer = document.getElementById('cards-container');
+      cardsContainer.innerHTML = '';
+      
+      for (let i = 0; i < 30; i++) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        
+        const cardNumber = document.createElement('div');
+        cardNumber.className = 'card-number';
+        cardNumber.textContent = i + 1;
+        
+        const textarea = document.createElement('textarea');
+        textarea.placeholder = 'What did you study today?';
+        textarea.value = cardEntries[i] || '';
+        textarea.dataset.index = i;
+        textarea.addEventListener('input', saveCardEntry);
+        
+        // Auto-resize textarea
+        textarea.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = (this.scrollHeight) + 'px';
+        });
+        
+        card.appendChild(cardNumber);
+        card.appendChild(textarea);
+        cardsContainer.appendChild(card);
+      }
+    }
+    
+    // Save card entry
+    function saveCardEntry(event) {
+      const index = parseInt(event.target.dataset.index);
+      const value = event.target.value;
+      
+      // Save to array
+      cardEntries[index] = value;
+      saveData();
+    }
+    
+    // Add a streak
+    function addStreak() {
+      streakCount++;
+      document.getElementById('streak-count').textContent = streakCount;
+      saveData();
+      
+      // Show confetti
+      triggerConfetti();
+    }
+    
+    // Reset all
+    function resetStreak() {
+      if (confirm('Are you sure you want to reset your streak? This will clear all entries and set the streak count to 0.')) {
+        streakCount = 0;
+        cardEntries = [];
+        document.getElementById('streak-count').textContent = '0';
+        generateCards();
+        saveData();
+      }
+    }
+    
+    // Save new target date
+    function saveNewDate() {
+      const newDateInput = document.getElementById('new-target-date');
+      if (newDateInput.value) {
+        targetDate = new Date(newDateInput.value);
+        document.querySelector('.countdown-title').textContent = `count down for ${targetDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+        document.getElementById('date-modal').style.display = 'none';
+        saveData();
+        startCountdown();
+      } else {
+        alert('Please select a valid date');
+      }
+    }
+    
+    // Confetti animation
+    function setupConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const ctx = canvas.getContext('2d');
+      let confettiPieces = [];
+      
+      function createConfetti() {
+        const colors = ['#9c27b0', '#e5b3ff', '#ff4081', '#03a9f4', '#8bc34a'];
+        confettiPieces = [];
+        
+        // Adjust number of confetti pieces based on screen size
+        const pieceCount = window.innerWidth < 600 ? 100 : 200;
+        
+        for (let i = 0; i < pieceCount; i++) {
+          confettiPieces.push({
+            x: Math.random() * canvas.width,
+            y: 0,
+            size: Math.random() * 8 + 3,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            angle: Math.random() * Math.PI * 2,
+            tilt: Math.random() * Math.PI / 2 - Math.PI / 4,
+            velocity: Math.random() * 5 + 3
+          });
+        }
+      }
+      
+      function drawConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        let activePieces = false;
+        confettiPieces.forEach(piece => {
+          if (piece.y < canvas.height) {
+            activePieces = true;
+            ctx.fillStyle = piece.color;
+            ctx.beginPath();
+            ctx.moveTo(piece.x, piece.y);
+            ctx.lineTo(piece.x + piece.size * Math.cos(piece.angle), 
+                      piece.y + piece.size * Math.sin(piece.angle));
+            ctx.lineTo(piece.x + piece.size * Math.cos(piece.angle + Math.PI/2), 
+                      piece.y + piece.size * Math.sin(piece.angle + Math.PI/2));
+            ctx.lineTo(piece.x + piece.size * Math.cos(piece.angle + Math.PI), 
+                      piece.y + piece.size * Math.sin(piece.angle + Math.PI));
+            ctx.closePath();
+            ctx.fill();
+            
+            // Update position
+            piece.y += piece.velocity;
+            piece.angle += 0.02;
+            piece.tilt += 0.01;
+          }
+        });
+        
+        if (activePieces) {
+          requestAnimationFrame(drawConfetti);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      
+      window.triggerConfetti = function() {
+        createConfetti();
+        drawConfetti();
+      };
+    }
+    
+    // Initialize the page
+    window.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      generateCards();
+      setupConfetti();
+      
+      // Set up event listeners
+      document.getElementById('add-streak').addEventListener('click', addStreak);
+      document.getElementById('reset-button').addEventListener('click', resetStreak);
+      document.getElementById('save-date').addEventListener('click', saveNewDate);
+      
+      // Handle window resize for confetti canvas
+      window.addEventListener('resize', () => {
+        const canvas = document.getElementById('confetti-canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+    });
+  </script>
+</body>
+</html>
